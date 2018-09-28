@@ -1,0 +1,33 @@
+language: java
+jdk:
+- openjdk8
+sudo: false
+env:
+  global:
+  - secure: lJOI0rE5mMW59/DTyYytgB3JSmVNkenzVZcEyRFvSBd89NE3zQGsR7iZmkc6SCujAQgpeye6ZrHC83OxJyhzNsDTC9kZAlL22v9b5avZbLWQgxhHhYbgwnDPcgjfm0qNuugLPk7AuWrEb9MocIKXZwpk4lFCiZ9jTH5glkufH/G4+VH67Kr8b1T/basCZpQp/jY6BlMSQsFJUOA2KMtuBspBu67RVgcMIWH6yAQNGH84fzpKMTxYLhZu04SJsj3yNZXdEg0EEAAxL2nKrrkckzxPWjt0+xNvKRCKztxkGa4xEEese3X3EJiI7OS1CNj6jJtg9+bjGLYH8NAZ6TOBIhdD3tamXPHOaQVb1R8+Yj14kZgCP502+gPXxIP0HfS7us9moybMjl9Le1mNX9ueW5xNaqxyiZjT5od5YopKyEDDXTaoS7HXY9PK2hOoRcLoyvJXL9JYB36p17ZScvkM5h4fUaKI3sU+OKaROe4GRrWVLj3M5GptBTXr3g+7Bu4uCC5mRH72KxOVJH9x7tSV1o1KNHp66KBkhB+PyooggyePlQ6eDQy1oj1Luv3r/C8p0HcBNUnnD0teo/ZVAUHa+WzYPxLTT30P0tUQfqzZGNQdV831S6MezajzU6mcktGJszDiRMo1+am4ydAbfEoEV+whFHvYptJ7tKUJHMzDvp8=
+before_install:
+- openssl aes-256-cbc -k "$GPG_PASSPHRASE" -in codesigning.asc.enc -out codesigning.asc -d
+- gpg --fast-import codesigning.asc
+
+install:
+- mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --quiet
+script:
+
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+deploy:
+- provider: script
+  script: mvn deploy -DskipTests --quiet --settings mvn-settings.xml
+  skip_cleanup: true
+  on:
+    tags: false
+    branch: master
+    condition: $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}'
+      --non-recursive exec:exec)  = *"SNAPSHOT"*
+- provider: script
+  script: mvn deploy -DskipTests --quiet --settings mvn-settings.xml
+  skip_cleanup: true
+  on:
+    tags: true
+    branch: master

@@ -1,0 +1,8 @@
+.vcenter {
+    float: none;
+    vertical-align: middle;
+    display: inline-block;
+}
+.big-icons {
+    font-size:1.4em;
+}
